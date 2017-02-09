@@ -1,17 +1,24 @@
 { config, pkgs, ... }:
 
+let
+  secrets = (import ../secrets_airvpn);
+in
+
 {
   imports = [
     ../modules/default.nix
     ../modules/gateway.nix
-    <nixpkgs/nixos/modules/profiles/qemu-guest.nix>
+    ../modules/physical.nix
   ];
+
+  services.openvpn.servers.airvpn = secrets.openvpn.airvpn;
 
   networking = {
     hostName = "nixostestgw";
     dhcpcd.allowInterfaces = [ "enp4s0f0" ];
   };
 
+  boot.loader.grub.devices = ["/dev/sda"];
   fileSystems."/".device = "/dev/sda1";
 
   freifunk.gateway = {
