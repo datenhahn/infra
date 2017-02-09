@@ -8,17 +8,17 @@
   ];
 
   networking = {
-    hostName = "testgw";
-    dhcpcd.allowInterfaces = [ "eth0" ];
+    hostName = "nixostestgw";
+    dhcpcd.allowInterfaces = [ "enp4s0f0" ];
   };
 
-  fileSystems."/".device = "/dev/vda1";
+  fileSystems."/".device = "/dev/sda1";
 
   freifunk.gateway = {
     enable = true;
-    externalInterface = "eth0";
-    ip4Interfaces = [ "tun0" "eth0" ];
-    ip6Interface = "eth0";
+    externalInterface = "enp4s0f0";
+    ip4Interfaces = [ "tun0" "enp4s0f0" ];
+    ip6Interface = "enp4s0f0";
     segments = {
       ffmuc = {
         baseMacAddress = "80:00:01:23:42";
@@ -63,10 +63,6 @@
           { from = 10010; to = 10089; }
         ];
       };
-    };
-    graphite = {
-      host = "localhost";
-      port = 2003;
     };
   };
 }
