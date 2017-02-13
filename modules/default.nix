@@ -6,20 +6,20 @@
     time.timeZone = "UTC";
 
     boot =
-    { kernel.sysctl =
-        { "net.ipv6.conf.default.autoconf" = 0;
-          "net.ipv6.conf.all.autoconf" = 0;
-          "vm.overcommit_memory" = 1;
-          "kernel.panic" = 1;
-        };
-      tmpOnTmpfs = true;
-      kernelPackages = pkgs.linuxPackages_4_9;
-      loader =
-        { timeout = lib.mkDefault 1;
-          grub.splashImage = null;
-          grub.version = lib.mkDefault 2;
-        };
-    };
+      { kernel.sysctl =
+          { "net.ipv6.conf.default.autoconf" = 0;
+            "net.ipv6.conf.all.autoconf" = 0;
+            "vm.overcommit_memory" = 1;
+            "kernel.panic" = 1;
+          };
+        tmpOnTmpfs = true;
+        kernelPackages = pkgs.linuxPackages_latest;
+        loader =
+          { timeout = lib.mkDefault 1;
+            grub.splashImage = null;
+            grub.version = lib.mkDefault 2;
+          };
+      };
 
     networking =
       { domain = lib.mkDefault "ffmuc.net";
@@ -74,7 +74,31 @@
             recommendedGzipSettings = true;
             recommendedProxySettings = true;
           };
-      };
+
+        prometheus.nodeExporter =
+          { enable = true;
+            enabledCollectors =
+              [ "conntrack"
+                "diskstats"
+                "entropy"
+                "filefd"
+                "filesystem"
+                "loadavg"
+                "interrupts"
+                "meminfo"
+                "netdev"
+                "netstat"
+                "sockstat"
+                "stat"
+                "time"
+                "uname"
+                "vmstat"
+                "systemd"
+                "logind"
+              ];
+            port = 9100;
+          };
+    };
 
     environment.systemPackages = with pkgs;
       [ vim htop git ethtool python3 perf-tools unzip traceroute
@@ -109,11 +133,7 @@
       };
 
     nix =
-      { extraOptions =
-          ''
-            auto-optimise-store = true
-          '';
-        gc =
+      { gc =
           { automatic = true;
             options = "--delete-older-than 2d";
           };
@@ -124,25 +144,5 @@
           [ "hydra.mayflower.de:9knPU2SJ2xyI0KTJjtUKOGUVdR2/3cOB4VNDQThcfaY="
           ];
       };
-
-    nixpkgs.config = {
-      packageOverrides = pkgs: {
-        collectd = pkgs.collectd.override {
-          jdk = null;
-          libdbi = null;
-          cyrus_sasl = null;
-          libmodbus = null;
-          libnotify = null;
-          gdk_pixbuf = null;
-          libsigrok = null;
-          libvirt = null;
-          rabbitmq-c = null;
-          riemann = null;
-          rrdtool = null;
-          varnish = null;
-          yajl = null;
-        };
-      };
-    };
   };
 }
