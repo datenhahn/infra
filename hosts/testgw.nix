@@ -2,6 +2,8 @@
 
 let
   secrets = (import ../secrets_airvpn);
+  gateway_interface = "enp0s3"
+  gateway_hostname = "ffmuc-wanderer"
 in
 
 {
@@ -13,9 +15,15 @@ in
 
   services.openvpn.servers.airvpn = secrets.openvpn.airvpn;
 
+  i18n = {
+     consoleFont = "Lat2-Terminus16";
+     consoleKeyMap = "de"; # wer eine deutsche Tastatur will
+     defaultLocale = "en_EN.UTF-8"
+  }
+
   networking = {
-    hostName = "nixostestgw";
-    dhcpcd.allowInterfaces = [ "enp4s0f0" ];
+    hostName = gateway_hostname;
+    dhcpcd.allowInterfaces = [ gateway_interface ];
   };
 
   boot.loader.grub.devices = ["/dev/sda"];
@@ -23,17 +31,17 @@ in
 
   freifunk.gateway = {
     enable = true;
-    externalInterface = "enp4s0f0";
-    ip4Interfaces = [ "tun0" "enp4s0f0" ];
-    ip6Interface = "enp4s0f0";
+    externalInterface = "enp0s3";
+    ip4Interfaces = [ "tun0" gateway_interface ];
+    ip6Interface = gateway_interface;
     segments = {
-      ffmuc = {
-        baseMacAddress = "80:00:01:23:42";
+      myfoo = {
+        baseMacAddress = "EE:EE:EE:00:00:00";
         bridgeInterface = {
-          ip4 = [ { address = "10.80.0.11"; prefixLength = 19; } ];
+          ip4 = [ { address = "192.168.33.1"; prefixLength = 24; } ];
           ip6 = [ { address = "fdef:ffc0:4fff::11"; prefixLength = 64; } ];
         };
-        dhcpRanges = [ "10.80.1.0,10.80.7.255,255.255.224.0,1h" ];
+        dhcpRanges = [ "192.168.33.100,192.168.33.200,255.255.255.0,1h" ];
         fastdConfigs = {
           backbone = {
             listenAddresses = [ "any" ];
@@ -46,28 +54,6 @@ in
         portBalancings = [
           { from = 10000; to = 10099; }
           { from = 10001; to = 10098; }
-        ];
-      };
-      ffoo = {
-        baseMacAddress = "42:00:01:23:42";
-        bridgeInterface = {
-          ip4 = [ { address = "10.81.0.1"; prefixLength = 16; } ];
-          ip6 = [ { address = "fdef::1"; prefixLength = 64; } ];
-        };
-        dhcpRanges = [ "10.81.1.0,10.81.31.255,255.255.0.0,1h" ];
-        ra.prefixes = [ "fdef::/64" ];
-        ra.rdnss = [ "fdef::1" ];
-        fastdConfigs = {
-          backbone = {
-            listenAddresses = [ "any" ];
-            listenPort = 9998;
-            mtu = 1428;
-            # fastd public: cc702a59de69623c2bb759a3c9dcac19c24e3ca597387b8463f8d130a6f640c0
-            secret = "f026925227659628400350407340eef4e155d0db1fd85d41c9f86764cba91c6a";
-          };
-        };
-        portBalancings = [
-          { from = 10010; to = 10089; }
         ];
       };
     };
