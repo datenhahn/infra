@@ -2,41 +2,37 @@
 
 let
   secrets = (import ../secrets_airvpn);
-  gateway_interface = "enp0s3"
-  gateway_hostname = "ffmuc-wanderer"
+  gateway_interface = "enp0s3";
+  gateway_hostname = "ffmuc-wanderer";
+  bootloader_disk_device = "/dev/sda";
+  rootfs_disk_device = "/dev/sda1";
 in
 
 {
   imports = [
     ../modules/default.nix
     ../modules/gateway.nix
-    ../modules/physical.nix
+    # ../modules/physical.nix
   ];
 
-  services.openvpn.servers.airvpn = secrets.openvpn.airvpn;
-
-  i18n = {
-     consoleFont = "Lat2-Terminus16";
-     consoleKeyMap = "de"; # wer eine deutsche Tastatur will
-     defaultLocale = "en_EN.UTF-8"
-  }
+  services.openvpn.servers.airvpn = secrets.openvpn.airvpn;	
 
   networking = {
     hostName = gateway_hostname;
     dhcpcd.allowInterfaces = [ gateway_interface ];
   };
 
-  boot.loader.grub.devices = ["/dev/sda"];
-  fileSystems."/".device = "/dev/sda1";
+  boot.loader.grub.devices = [bootloader_disk_device];
+  fileSystems."/".device = rootfs_disk_device;
 
   freifunk.gateway = {
     enable = true;
-    externalInterface = "enp0s3";
+    externalInterface = gateway_interface;
     ip4Interfaces = [ "tun0" gateway_interface ];
     ip6Interface = gateway_interface;
     segments = {
       myfoo = {
-        baseMacAddress = "EE:EE:EE:00:00:00";
+        baseMacAddress = "EE:EE:00:00:00";
         bridgeInterface = {
           ip4 = [ { address = "192.168.33.1"; prefixLength = 24; } ];
           ip6 = [ { address = "fdef:ffc0:4fff::11"; prefixLength = 64; } ];
@@ -46,15 +42,12 @@ in
           backbone = {
             listenAddresses = [ "any" ];
             listenPort = 9999;
-            mtu = 1428;
-            # fastd public: cc702a59de69623c2bb759a3c9dcac19c24e3ca597387b8463f8d130a6f640c0
-            secret = "f026925227659628400350407340eef4e155d0db1fd85d41c9f86764cba91c6a";
+            mtu = 1426;
+            # Secret: 20adbf7589f61ea403e98113457e8722910f651aa61a73ee8e5d617d060ce872
+            # Public: b23fd92e300e2c9cf6328fa88cfb890084d4414aeccabbe17ea829733a3d4563
+            secret = "20adbf7589f61ea403e98113457e8722910f651aa61a73ee8e5d617d060ce872";
           };
         };
-        portBalancings = [
-          { from = 10000; to = 10099; }
-          { from = 10001; to = 10098; }
-        ];
       };
     };
   };
